@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Game</title>
+  <style>
+    :root {
+      --bg: #1a1a2a;
+      --grid: #2a2a4a;
+      --snake-head: #7de0b7;
+      --snake-body: #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8;
+      --food: #ff6b6b;
+      --text: #e9f1ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      color: var(--text);
+    }
+
+    .game-shell {
+      width: min(480px, calc(100vw - 32px));
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(26, 26, 42, 0.95);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .start-menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(26, 26, 42, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 24px;
+    }
+
+    .start-menu h2 {
+      color: #e9f1ff;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .option-group {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .option-group label {
+      display: block;
+      color: #c6d3ff;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .option-group select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #2a2a4a;
+      color: #e9f1ff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .start-button {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .start-button:hover {
+      transform: scale(1.05);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+      color: #c6d3ff;
+    }
+
+    #gameCanvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(135deg, #2a2a4a 0%, #3a3a6a 50%, #4a4a8a 100%);
+      border: 2px solid rgba(118, 194, 255, 0.14);
+      border-radius: 18px;
+      image-rendering: crisp-edges;
+    }
+
+    .instructions {
+      margin-top: 18px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #a7b8e1;
+    }
+
+    .instructions strong {
+      color: #d4e8ff;
+    }
+
+    .hint {
+      margin-top: 10px;
+      text-align: center;
+      color: #8fa9dd;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <h1>Snake</h1>
+    <div class="status-bar">
+      <div>Score: <span id="score">0</span></div>
+      <div>High Score: <span id="highScore">0</span></div>
+      <div id="status">Press Arrow Keys to start</div>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="instructions">
+      <p>Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to move. Collect food to grow longer.</p>
+      <p>Don't hit the walls or your own body. The snake grows after each food item, making the grid more crowded.</p>
+      <p>Collect <strong>⚡ Power-Ups</strong> for temporary boosts: Speed, Invincibility, or Score Boost.</p>
+      <p>Watch the <strong>👻 Time Echo</strong> trail for strategy!</p>
+      <p>Choose your <strong>Game Mode</strong>, <strong>Speed</strong>, and <strong>Snake Color</strong> at the start!</p>
+    </div>
+    <div class="hint">Press <strong>Space</strong> to return to menu after a game over.</div>
+
+    <!-- Start Menu -->
+    <div class="start-menu" id="startMenu">
+      <h2>Choose Your Settings</h2>
+      <div class="option-group">
+        <label for="gameMode">Game Mode:</label>
+        <select id="gameMode">
+          <option value="classic">Classic</option>
+          <option value="dynamic">Dynamic (Shrinking Walls)</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label for="snakeSpeed">Snake Speed:</label>
+        <select id="snakeSpeed">
+          <option value="slow">Slow</option>
+          <option value="normal">Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label for="snakeColor">Snake Color:</label>
+        <select id="snakeColor">
+          <option value="green">Green</option>
+          <option value="blue">Blue</option>
+          <option value="red">Red</option>
+          <option value="purple">Purple</option>
+          <option value="rainbow">Rainbow</option>
+        </select>
+      </div>
+      <button class="start-button" id="startButton">Start Game</button>
+    </div>
+  </div>
+
+  <script>
+    // This is a simple Snake game using HTML canvas and JavaScript.
+    // The snake is a list of cells. Each cell has an x and y position on the grid.
+    // The game loop updates the snake position, checks for collisions, and redraws the board.
+
+    // Grab the canvas element and the places we will show score, high score, and messages.
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const statusEl = document.getElementById('status');
+
+    // Grid settings.
+    const cellsPerSide = 20; // how many squares fit across the canvas
+    const cellSize = canvas.width / cellsPerSide; // size of each square in pixels
+    const startSpeed = 8; // how fast the snake moves at the beginning
+
+    // Grid color that changes when eating fruit.
+    let gridColor = '#3a3a6a';
+
+    // Game settings from menu.
+    let gameMode = 'classic';
+    let snakeSpeed = 'normal';
+    let snakeColor = 'green';
+
+    // Dynamic map variables.
+    let playAreaMinX = 0;
+    let playAreaMaxX = cellsPerSide - 1;
+    let playAreaMinY = 0;
+    let playAreaMaxY = cellsPerSide - 1;
+    let obstacles = [];
+    let shrinkTimer = 0;
+    let obstacleTimer = 0;
+
+    // Time Echo variables.
+    let snakeHistory = [];
+    const maxHistoryLength = 10;
+
+    // Power-Up variables.
+    let powerUps = [];
+    let activePowerUp = null;
+    let powerUpTimer = 0;
+    let powerUpSpawnTimer = 0;
+
+    // Power-Up types.
+    const powerUpTypes = [
+      { name: 'speed', color: '#ffff00', effect: () => speed = Math.min(25, speed + 5), duration: 300 },
+      { name: 'invincible', color: '#ff00ff', effect: () => {}, duration: 200 },
+      { name: 'scoreBoost', color: '#00ffff', effect: () => {}, duration: 150 }
+    ];
+
+    // Variables that hold the current state of the game.
+    let snake;
+    let food;
+    let currentDirection;
+    let nextDirection;
+    let score;
+    let gameOver;
+    let speed;
+    let highScore = 0;
+
+    function loadHighScore() {
+      const stored = localStorage.getItem('snakeHighScore');
+      highScore = stored ? parseInt(stored, 10) : 0;
+      highScoreEl.textContent = highScore;
+    }
+
+    function saveHighScore() {
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('snakeHighScore', highScore);
+        highScoreEl.textContent = highScore;
+      }
+    }
+
+    // Set up or restart the game.
+    function resetGame() {
+      // Start with a snake made of three cells.
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+
+      // The snake starts moving right.
+      currentDirection = { x: 1, y: 0 };
+      nextDirection = { x: 1, y: 0 };
+      score = 0;
+
+      // Set speed based on selection.
+      if (snakeSpeed === 'slow') {
+        speed = 6;
+      } else if (snakeSpeed === 'normal') {
+        speed = 8;
+      } else if (snakeSpeed === 'fast') {
+        speed = 12;
+      }
+
+      gameOver = false;
+
+      // Reset dynamic map only if dynamic mode.
+      if (gameMode === 'dynamic') {
+        playAreaMinX = 0;
+        playAreaMaxX = cellsPerSide - 1;
+        playAreaMinY = 0;
+        playAreaMaxY = cellsPerSide - 1;
+        obstacles = [];
+        shrinkTimer = 0;
+        obstacleTimer = 0;
+      }
+
+      // Reset Time Echo and Power-Ups.
+      snakeHistory = [];
+      powerUps = [];
+      activePowerUp = null;
+      powerUpTimer = 0;
+      powerUpSpawnTimer = 0;
+
+      // Reset grid color.
+      gridColor = '#3a3a6a';
+
+      // Put the first food on the board.
+      placeFood();
+      scoreEl.textContent = score;
+      statusEl.textContent = 'Playing...';
+      highScoreEl.textContent = highScore;
+
+      // Begin the animation loop.
+      window.requestAnimationFrame(gameLoop);
+    }
+
+    // Find a random empty cell on the board to place the food.
+    function placeFood() {
+      const freeCells = [];
+
+      // Loop through every possible position in the play area.
+      for (let x = playAreaMinX; x <= playAreaMaxX; x++) {
+        for (let y = playAreaMinY; y <= playAreaMaxY; y++) {
+          // If the snake is not on this cell and no obstacle, it is available for food.
+          if (isCellFree(x, y)) {
+            freeCells.push({ x, y });
+          }
+        }
+      }
+
+      // If there are no free cells left, the player wins.
+      if (freeCells.length === 0) {
+        gameOver = true;
+        statusEl.textContent = 'You win! Space to restart.';
+        return;
+      }
+
+      // Pick one of the empty cells randomly.
+      food = freeCells[Math.floor(Math.random() * freeCells.length)];
+    }
+
+    // Move the snake forward and handle food, walls, and collisions.
+    function update() {
+      if (gameOver) {
+        return;
+      }
+
+      // Handle dynamic map: shrink area and spawn obstacles (only in dynamic mode).
+      if (gameMode === 'dynamic') {
+        shrinkTimer++;
+        if (shrinkTimer >= 300) { // Shrink every 300 frames (adjust for difficulty)
+          shrinkPlayArea();
+          shrinkTimer = 0;
+        }
+
+        obstacleTimer++;
+        if (obstacleTimer >= 150) { // Spawn obstacle every 150 frames
+          spawnObstacle();
+          obstacleTimer = 0;
+        }
+      }
+
+      // Handle Power-Ups: spawn and manage active effects.
+      powerUpSpawnTimer++;
+      if (powerUpSpawnTimer >= 500) { // Spawn power-up every 500 frames
+        spawnPowerUp();
+        powerUpSpawnTimer = 0;
+      }
+
+      if (activePowerUp) {
+        powerUpTimer--;
+        if (powerUpTimer <= 0) {
+          // End power-up effect.
+          if (activePowerUp.name === 'speed') {
+            speed = startSpeed + Math.floor(score / 3);
+          }
+          activePowerUp = null;
+        }
+      }
+
+      // Update Time Echo: add current snake to history.
+      snakeHistory.push([...snake]);
+      if (snakeHistory.length > maxHistoryLength) {
+        snakeHistory.shift();
+      }
+
+      // Use the direction from the last key press.
+      currentDirection = nextDirection;
+
+      // Calculate the position of the new head cell.
+      const head = {
+        x: snake[0].x + currentDirection.x,
+        y: snake[0].y + currentDirection.y
+      };
+
+      // If the head goes outside the play area, the game is over (unless invincible).
+      if (!isInPlayArea(head.x, head.y) && activePowerUp?.name !== 'invincible') {
+        endGame('Out of play area!');
+        return;
+      }
+
+      // If the head hits an obstacle, the game is over (unless invincible).
+      if (obstacles.some(obs => obs.x === head.x && obs.y === head.y) && activePowerUp?.name !== 'invincible') {
+        endGame('Hit an obstacle!');
+        return;
+      }
+
+      // If the head hits any part of the snake, the game is over (unless invincible).
+      if (snake.some(segment => segment.x === head.x && segment.y === head.y) && activePowerUp?.name !== 'invincible') {
+        endGame('Crashed into yourself!');
+        return;
+      }
+
+      // Add the new head to the front of the snake.
+      snake.unshift(head);
+
+      // Check for power-up collection.
+      const collectedPowerUp = powerUps.find(pu => pu.x === head.x && pu.y === head.y);
+      if (collectedPowerUp) {
+        activatePowerUp(collectedPowerUp.type);
+        powerUps = powerUps.filter(pu => pu !== collectedPowerUp);
+      }
+
+      // If the snake eats food, grow and place new food.
+      if (head.x === food.x && head.y === food.y) {
+        score += activePowerUp?.name === 'scoreBoost' ? 3 : 1; // Score boost if active
+        speed = Math.min(18, startSpeed + Math.floor(score / 3));
+        scoreEl.textContent = score;
+
+        // Change grid color randomly.
+        const colors = ['#3a3a6a', '#4a4a8a', '#5a5aaa', '#6a6aca', '#7a7aea', '#8a8afa', '#9a9afa'];
+        gridColor = colors[Math.floor(Math.random() * colors.length)];
+
+        placeFood();
+      } else {
+        // Remove the last cell so the snake stays the same length.
+        snake.pop();
+      }
+    }
+
+    // Stop the game and show a message.
+    function endGame(message) {
+      saveHighScore();
+      gameOver = true;
+      statusEl.textContent = `${message} Press Space to restart.`;
+    }
+
+    // Helper to lighten a hex color.
+    function lightenColor(hex, percent) {
+      const num = parseInt(hex.replace("#", ""), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
+
+    // Check if a cell is within the current play area.
+    function isInPlayArea(x, y) {
+      return x >= playAreaMinX && x <= playAreaMaxX && y >= playAreaMinY && y <= playAreaMaxY;
+    }
+
+    // Check if a cell is free (not occupied by snake or obstacles).
+    function isCellFree(x, y) {
+      return !snake.some(segment => segment.x === x && segment.y === y) &&
+             !obstacles.some(obs => obs.x === x && obs.y === y) &&
+             isInPlayArea(x, y);
+    }
+
+    // Shrink the play area periodically.
+    function shrinkPlayArea() {
+      if (playAreaMinX < playAreaMaxX - 1) {
+        playAreaMinX++;
+        playAreaMaxX--;
+      }
+      if (playAreaMinY < playAreaMaxY - 1) {
+        playAreaMinY++;
+        playAreaMaxY--;
+      }
+    }
+
+    // Spawn a random obstacle in a free cell.
+    function spawnObstacle() {
+      const freeCells = [];
+      for (let x = playAreaMinX; x <= playAreaMaxX; x++) {
+        for (let y = playAreaMinY; y <= playAreaMaxY; y++) {
+          if (isCellFree(x, y)) {
+            freeCells.push({ x, y });
+          }
+        }
+      }
+      if (freeCells.length > 0) {
+        const randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+        obstacles.push(randomCell);
+      }
+    }
+
+    // Spawn a power-up in a free cell.
+    function spawnPowerUp() {
+      const freeCells = [];
+      for (let x = playAreaMinX; x <= playAreaMaxX; x++) {
+        for (let y = playAreaMinY; y <= playAreaMaxY; y++) {
+          if (isCellFree(x, y)) {
+            freeCells.push({ x, y });
+          }
+        }
+      }
+      if (freeCells.length > 0 && powerUps.length < 2) { // Limit to 2 power-ups at a time
+        const randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+        const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+        powerUps.push({ x: randomCell.x, y: randomCell.y, type: randomType });
+      }
+    }
+
+    // Activate a power-up effect.
+    function activatePowerUp(type) {
+      activePowerUp = type;
+      powerUpTimer = type.duration;
+      type.effect();
+      statusEl.textContent = `Power-Up: ${type.name.charAt(0).toUpperCase() + type.name.slice(1)}!`;
+    }
+
+    // Draw a stylized fruit instead of a simple square.
+    function drawFruit(cell) {
+      const centerX = cell.x * cellSize + cellSize / 2;
+      const centerY = cell.y * cellSize + cellSize / 2;
+      const radius = cellSize * 0.32;
+
+      // Random fruit colors for variety.
+      const fruitColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
+      const fruitColor = fruitColors[Math.floor(Math.random() * fruitColors.length)];
+
+      // Fruit body with a gradient for depth.
+      const fruitGradient = ctx.createRadialGradient(centerX - radius * 0.15, centerY - radius * 0.15, radius * 0.1, centerX, centerY, radius);
+      fruitGradient.addColorStop(0, lightenColor(fruitColor, 20));
+      fruitGradient.addColorStop(1, fruitColor);
+      ctx.fillStyle = fruitGradient;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Fruit shine highlight.
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.beginPath();
+      ctx.ellipse(centerX - radius * 0.2, centerY - radius * 0.2, radius * 0.17, radius * 0.28, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Stem.
+      ctx.strokeStyle = '#5e3b23';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - radius * 0.7);
+      ctx.lineTo(centerX, centerY - radius * 1.2);
+      ctx.stroke();
+
+      // Leaf.
+      ctx.fillStyle = '#4cbf53';
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - radius * 1.15);
+      ctx.quadraticCurveTo(centerX + radius * 0.55, centerY - radius * 1.5, centerX + radius * 0.1, centerY - radius * 0.7);
+      ctx.fill();
+    }
+
+    // Colors for snake body segments.
+    const snakeBodyColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
+
+    // Draw an individual snake segment with rounded edges.
+    function drawSnakeSegment(segment, isHead, segmentIndex) {
+      const x = segment.x * cellSize + 1;
+      const y = segment.y * cellSize + 1;
+      const size = cellSize - 2;
+      const radius = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + size - radius, y);
+      ctx.quadraticCurveTo(x + size, y, x + size, y + radius);
+      ctx.lineTo(x + size, y + size - radius);
+      ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+      ctx.lineTo(x + radius, y + size);
+      ctx.quadraticCurveTo(x, y + size, x, y + size - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+
+      if (isHead) {
+        let headColor;
+        if (snakeColor === 'green') headColor = '#97f0d1';
+        else if (snakeColor === 'blue') headColor = '#4ecdc4';
+        else if (snakeColor === 'red') headColor = '#ff6b6b';
+        else if (snakeColor === 'purple') headColor = '#dda0dd';
+        else if (snakeColor === 'rainbow') headColor = '#ff6b6b'; // Will be overridden
+        const headGradient = ctx.createLinearGradient(x, y, x + size, y + size);
+        headGradient.addColorStop(0, lightenColor(headColor, 20));
+        headGradient.addColorStop(1, headColor);
+        ctx.fillStyle = headGradient;
+      } else {
+        // Cycle through colors for body segments.
+        let bodyColors;
+        if (snakeColor === 'green') bodyColors = ['#4ecdc4', '#45b7d1', '#96ceb4'];
+        else if (snakeColor === 'blue') bodyColors = ['#45b7d1', '#96ceb4', '#ffeaa7'];
+        else if (snakeColor === 'red') bodyColors = ['#ff6b6b', '#ffeaa7', '#dda0dd'];
+        else if (snakeColor === 'purple') bodyColors = ['#dda0dd', '#98d8c8', '#ff6b6b'];
+        else if (snakeColor === 'rainbow') bodyColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
+        const colorIndex = segmentIndex % bodyColors.length;
+        const bodyColor = bodyColors[colorIndex];
+        const bodyGradient = ctx.createLinearGradient(x, y, x + size, y + size);
+        bodyGradient.addColorStop(0, lightenColor(bodyColor, 20));
+        bodyGradient.addColorStop(1, bodyColor);
+        ctx.fillStyle = bodyGradient;
+      }
+      ctx.fill();
+
+      if (isHead) {
+        // Add cleaner eyes to the snake head.
+        const eyeRadius = size * 0.12;
+        const eyeY = y + size * 0.32;
+        const leftEyeX = x + size * 0.3;
+        const rightEyeX = x + size * 0.7;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(leftEyeX, eyeY, eyeRadius, 0, Math.PI * 2);
+        ctx.arc(rightEyeX, eyeY, eyeRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#163329';
+        ctx.beginPath();
+        ctx.arc(leftEyeX, eyeY, eyeRadius * 0.45, 0, Math.PI * 2);
+        ctx.arc(rightEyeX, eyeY, eyeRadius * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(leftEyeX - eyeRadius * 0.15, eyeY - eyeRadius * 0.15, eyeRadius * 0.25, 0, Math.PI * 2);
+        ctx.arc(rightEyeX - eyeRadius * 0.15, eyeY - eyeRadius * 0.15, eyeRadius * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Draw the board, the food, and the snake.
+    function draw() {
+      // Paint the background.
+      ctx.fillStyle = '#1a1a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the grid so the board looks like tiles.
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 2;
+      for (let x = 0; x <= cellsPerSide; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * cellSize, 0);
+        ctx.lineTo(x * cellSize, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= cellsPerSide; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * cellSize);
+        ctx.lineTo(canvas.width, y * cellSize);
+        ctx.stroke();
+      }
+
+      // Draw the shrinking play area boundaries (walls) only in dynamic mode.
+      if (gameMode === 'dynamic') {
+        ctx.fillStyle = '#ff4444';
+        // Top wall
+        ctx.fillRect(playAreaMinX * cellSize, playAreaMinY * cellSize, (playAreaMaxX - playAreaMinX + 1) * cellSize, cellSize);
+        // Bottom wall
+        ctx.fillRect(playAreaMinX * cellSize, playAreaMaxY * cellSize, (playAreaMaxX - playAreaMinX + 1) * cellSize, cellSize);
+        // Left wall
+        ctx.fillRect(playAreaMinX * cellSize, playAreaMinY * cellSize, cellSize, (playAreaMaxY - playAreaMinY + 1) * cellSize);
+        // Right wall
+        ctx.fillRect(playAreaMaxX * cellSize, playAreaMinY * cellSize, cellSize, (playAreaMaxY - playAreaMinY + 1) * cellSize);
+
+        // Draw obstacles.
+        ctx.fillStyle = '#666666';
+        for (const obs of obstacles) {
+          ctx.fillRect(obs.x * cellSize + 2, obs.y * cellSize + 2, cellSize - 4, cellSize - 4);
+        }
+      }
+
+      // Draw Time Echo: fading ghost of past snake positions.
+      for (let i = 0; i < snakeHistory.length; i++) {
+        const alpha = (i + 1) / snakeHistory.length * 0.3; // Fade older echoes
+        ctx.globalAlpha = alpha;
+        for (const segment of snakeHistory[i]) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(segment.x * cellSize + 4, segment.y * cellSize + 4, cellSize - 8, cellSize - 8);
+        }
+      }
+      ctx.globalAlpha = 1; // Reset alpha
+
+      // Draw Power-Ups.
+      for (const pu of powerUps) {
+        ctx.fillStyle = pu.type.color;
+        ctx.fillRect(pu.x * cellSize + 2, pu.y * cellSize + 2, cellSize - 4, cellSize - 4);
+        // Add a lightning bolt symbol.
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${cellSize * 0.6}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡', pu.x * cellSize + cellSize / 2, pu.y * cellSize + cellSize * 0.7);
+      }
+
+      // Draw the food as a fruit.
+      drawFruit(food);
+
+      // Draw each part of the snake.
+      for (let i = 0; i < snake.length; i++) {
+        drawSnakeSegment(snake[i], i === 0, i);
+      }
+    }
+
+    // Keep track of when the last game update happened.
+    let lastFrameTime = 0;
+
+    // The main loop runs again and again using requestAnimationFrame.
+    function gameLoop(currentTime) {
+      if (gameOver) {
+        draw();
+        return;
+      }
+
+      const elapsed = currentTime - lastFrameTime;
+      const updateRate = 1000 / speed;
+
+      // Only update when enough time has passed for the current speed.
+      if (elapsed > updateRate) {
+        lastFrameTime = currentTime;
+        update();
+        draw();
+      }
+
+      window.requestAnimationFrame(gameLoop);
+    }
+
+    // Listen for keys so the player can move the snake.
+    window.addEventListener('keydown', event => {
+      const key = event.key.toLowerCase();
+
+      if (key === 'arrowup' || key === 'w') {
+        if (currentDirection.y !== 1) {
+          nextDirection = { x: 0, y: -1 };
+        }
+      }
+      if (key === 'arrowdown' || key === 's') {
+        if (currentDirection.y !== -1) {
+          nextDirection = { x: 0, y: 1 };
+        }
+      }
+      if (key === 'arrowleft' || key === 'a') {
+        if (currentDirection.x !== 1) {
+          nextDirection = { x: -1, y: 0 };
+        }
+      }
+      if (key === 'arrowright' || key === 'd') {
+        if (currentDirection.x !== -1) {
+          nextDirection = { x: 1, y: 0 };
+        }
+      }
+
+      // If the game is over, space restarts it.
+      if (key === ' ' && gameOver) {
+        startMenu.style.display = 'flex';
+      }
+    });
+
+    // Load the saved high score and start the game.
+    loadHighScore();
+
+    // Handle start menu.
+    const startMenu = document.getElementById('startMenu');
+    const startButton = document.getElementById('startButton');
+    const gameModeSelect = document.getElementById('gameMode');
+    const snakeSpeedSelect = document.getElementById('snakeSpeed');
+    const snakeColorSelect = document.getElementById('snakeColor');
+
+    startButton.addEventListener('click', () => {
+      gameMode = gameModeSelect.value;
+      snakeSpeed = snakeSpeedSelect.value;
+      snakeColor = snakeColorSelect.value;
+      startMenu.style.display = 'none';
+      resetGame();
+    });
+  </script>
+</body>
+</html>
