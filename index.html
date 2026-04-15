@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snake Game</title>
+  <title>Grizzo's Snake Game</title>
   <style>
     :root {
       --bg: #1a1a2a;
@@ -45,19 +45,38 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(26, 26, 42, 0.98);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 50%, rgba(240, 147, 251, 0.95) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 10;
       border-radius: 24px;
+      box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1);
+      animation: menuGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes menuGlow {
+      0% { box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1), 0 0 30px rgba(102, 126, 234, 0.3); }
+      100% { box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.2), 0 0 50px rgba(240, 147, 251, 0.5); }
     }
 
     .start-menu h2 {
-      color: #e9f1ff;
+      color: #ffffff;
       margin-bottom: 20px;
-      font-size: 1.5rem;
+      font-size: 2rem;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(102, 126, 234, 0.6);
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleRainbow 4s linear infinite;
+    }
+
+    @keyframes titleRainbow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .option-group {
@@ -67,34 +86,62 @@
 
     .option-group label {
       display: block;
-      color: #c6d3ff;
+      color: #ffffff;
       margin-bottom: 8px;
-      font-size: 1rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
     .option-group select {
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: none;
-      background: #2a2a4a;
-      color: #e9f1ff;
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      color: #ffffff;
       font-size: 1rem;
       cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .option-group select:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .option-group select:focus {
+      outline: none;
+      border-color: #4ecdc4;
+      box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
     }
 
     .start-button {
-      padding: 12px 24px;
-      border-radius: 12px;
+      padding: 15px 30px;
+      border-radius: 15px;
       border: none;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
       color: white;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      animation: buttonPulse 2s ease-in-out infinite;
     }
 
     .start-button:hover {
-      transform: scale(1.05);
+      transform: scale(1.05) translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      animation: none;
+    }
+
+    @keyframes buttonPulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 107, 107, 0.3); }
+      50% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 30px rgba(78, 205, 196, 0.5); }
     }
 
     h1 {
@@ -142,7 +189,7 @@
 </head>
 <body>
   <div class="game-shell">
-    <h1>Snake</h1>
+    <h1>Grizzo's Snake Game</h1>
     <div class="status-bar">
       <div>Score: <span id="score">0</span></div>
       <div>High Score: <span id="highScore">0</span></div>
@@ -154,9 +201,9 @@
       <p>Don't hit the walls or your own body. The snake grows after each food item, making the grid more crowded.</p>
       <p>Collect <strong>⚡ Power-Ups</strong> for temporary boosts: Speed, Invincibility, or Score Boost.</p>
       <p>Watch the <strong>👻 Time Echo</strong> trail for strategy!</p>
-      <p>Choose your <strong>Game Mode</strong>, <strong>Speed</strong>, and <strong>Snake Color</strong> at the start!</p>
+      <p>Choose your <strong>Game Mode</strong>, <strong>Speed</strong>, <strong>Snake Color</strong>, and <strong>Snake Type</strong> at the start!</p>
     </div>
-    <div class="hint">Press <strong>Space</strong> to return to menu after a game over.</div>
+    <div class="hint">Press <strong>Space</strong> to return to menu after a game over. Check the <strong>Leaderboard</strong> to see top scores!</div>
 
     <!-- Start Menu -->
     <div class="start-menu" id="startMenu">
@@ -186,7 +233,23 @@
           <option value="rainbow">Rainbow</option>
         </select>
       </div>
+      <div class="option-group">
+        <label for="snakeType">Snake Type:</label>
+        <select id="snakeType">
+          <option value="classic">Classic</option>
+          <option value="blocky">Blocky</option>
+          <option value="slim">Slim</option>
+        </select>
+      </div>
       <button class="start-button" id="startButton">Start Game</button>
+      <button class="start-button" id="leaderboardButton">Leaderboard</button>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="start-menu" id="leaderboard" style="display: none;">
+      <h2>Top Scores</h2>
+      <ol id="leaderboardList"></ol>
+      <button class="start-button" id="backButton">Back to Menu</button>
     </div>
   </div>
 
@@ -209,11 +272,13 @@
 
     // Grid color that changes when eating fruit.
     let gridColor = '#3a3a6a';
+    const gridColors = ['#2e3b6f', '#3f539d', '#5b6fd8', '#7a85f4', '#9aa9ff', '#c0c7ff'];
 
     // Game settings from menu.
     let gameMode = 'classic';
     let snakeSpeed = 'normal';
     let snakeColor = 'green';
+    let snakeType = 'classic';
 
     // Dynamic map variables.
     let playAreaMinX = 0;
@@ -250,6 +315,10 @@
     let gameOver;
     let speed;
     let highScore = 0;
+    let animationTime = 0;
+    let particles = [];
+    let combo = 0;
+    let comboTimer = 0;
 
     function loadHighScore() {
       const stored = localStorage.getItem('snakeHighScore');
@@ -263,6 +332,61 @@
         localStorage.setItem('snakeHighScore', highScore);
         highScoreEl.textContent = highScore;
       }
+    }
+
+    function loadLeaderboard() {
+      const stored = localStorage.getItem('snakeLeaderboard');
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveLeaderboard(leaderboard) {
+      leaderboard.sort((a, b) => b.score - a.score);
+      const top10 = leaderboard.slice(0, 10);
+      localStorage.setItem('snakeLeaderboard', JSON.stringify(top10));
+    }
+
+    function addToLeaderboard(name, score) {
+      const leaderboard = loadLeaderboard();
+      leaderboard.push({ name, score });
+      saveLeaderboard(leaderboard);
+    }
+
+    function spawnParticles(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const velocity = 2 + Math.random() * 3;
+        particles.push({
+          x: x + cellSize / 2,
+          y: y + cellSize / 2,
+          vx: Math.cos(angle) * velocity,
+          vy: Math.sin(angle) * velocity,
+          color: color,
+          life: 1,
+          size: 3 + Math.random() * 2
+        });
+      }
+    }
+
+    function updateParticles() {
+      particles = particles.filter(p => p.life > 0);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.1;
+        p.life -= 0.02;
+        p.vx *= 0.98;
+      });
+    }
+
+    function displayLeaderboard() {
+      const leaderboard = loadLeaderboard();
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      leaderboard.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name}: ${entry.score}`;
+        list.appendChild(li);
+      });
     }
 
     // Set up or restart the game.
@@ -307,6 +431,9 @@
       activePowerUp = null;
       powerUpTimer = 0;
       powerUpSpawnTimer = 0;
+      particles = [];
+      combo = 0;
+      comboTimer = 0;
 
       // Reset grid color.
       gridColor = '#3a3a6a';
@@ -430,9 +557,15 @@
 
       // If the snake eats food, grow and place new food.
       if (head.x === food.x && head.y === food.y) {
-        score += activePowerUp?.name === 'scoreBoost' ? 3 : 1; // Score boost if active
+        combo++;
+        comboTimer = 30;
+        const basePoints = activePowerUp?.name === 'scoreBoost' ? 3 : 1;
+        const comboMultiplier = 1 + Math.floor(combo / 5) * 0.5;
+        const points = Math.floor(basePoints * comboMultiplier);
+        score += points;
         speed = Math.min(18, startSpeed + Math.floor(score / 3));
         scoreEl.textContent = score;
+        spawnParticles(food.x * cellSize, food.y * cellSize, '#ffff00', 12);
 
         // Change grid color randomly.
         const colors = ['#3a3a6a', '#4a4a8a', '#5a5aaa', '#6a6aca', '#7a7aea', '#8a8afa', '#9a9afa'];
@@ -443,11 +576,23 @@
         // Remove the last cell so the snake stays the same length.
         snake.pop();
       }
+
+      // Decay combo if no food eaten this frame
+      comboTimer--;
+      if (comboTimer <= 0) {
+        combo = 0;
+      }
+
+      updateParticles();
     }
 
     // Stop the game and show a message.
     function endGame(message) {
       saveHighScore();
+      const name = prompt('Enter your name for the leaderboard:', 'Player');
+      if (name) {
+        addToLeaderboard(name, score);
+      }
       gameOver = true;
       statusEl.textContent = `${message} Press Space to restart.`;
     }
@@ -535,38 +680,43 @@
       const centerY = cell.y * cellSize + cellSize / 2;
       const radius = cellSize * 0.32;
 
+      // Add pulsing effect
+      const scale = 1 + Math.sin(animationTime * 3) * 0.05;
+      const scaledRadius = radius * scale;
+
       // Random fruit colors for variety.
       const fruitColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
-      const fruitColor = fruitColors[Math.floor(Math.random() * fruitColors.length)];
+      const colorIndex = Math.floor(animationTime / 20) % fruitColors.length;
+      const fruitColor = fruitColors[colorIndex];
 
       // Fruit body with a gradient for depth.
-      const fruitGradient = ctx.createRadialGradient(centerX - radius * 0.15, centerY - radius * 0.15, radius * 0.1, centerX, centerY, radius);
+      const fruitGradient = ctx.createRadialGradient(centerX - scaledRadius * 0.15, centerY - scaledRadius * 0.15, scaledRadius * 0.1, centerX, centerY, scaledRadius);
       fruitGradient.addColorStop(0, lightenColor(fruitColor, 20));
       fruitGradient.addColorStop(1, fruitColor);
       ctx.fillStyle = fruitGradient;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, scaledRadius, 0, Math.PI * 2);
       ctx.fill();
 
       // Fruit shine highlight.
       ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
       ctx.beginPath();
-      ctx.ellipse(centerX - radius * 0.2, centerY - radius * 0.2, radius * 0.17, radius * 0.28, Math.PI / 4, 0, Math.PI * 2);
+      ctx.ellipse(centerX - scaledRadius * 0.2, centerY - scaledRadius * 0.2, scaledRadius * 0.17, scaledRadius * 0.28, Math.PI / 4, 0, Math.PI * 2);
       ctx.fill();
 
       // Stem.
       ctx.strokeStyle = '#5e3b23';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(centerX, centerY - radius * 0.7);
-      ctx.lineTo(centerX, centerY - radius * 1.2);
+      ctx.moveTo(centerX, centerY - scaledRadius * 0.7);
+      ctx.lineTo(centerX, centerY - scaledRadius * 1.2);
       ctx.stroke();
 
       // Leaf.
       ctx.fillStyle = '#4cbf53';
       ctx.beginPath();
-      ctx.moveTo(centerX, centerY - radius * 1.15);
-      ctx.quadraticCurveTo(centerX + radius * 0.55, centerY - radius * 1.5, centerX + radius * 0.1, centerY - radius * 0.7);
+      ctx.moveTo(centerX, centerY - scaledRadius * 1.15);
+      ctx.quadraticCurveTo(centerX + scaledRadius * 0.55, centerY - scaledRadius * 1.5, centerX + scaledRadius * 0.1, centerY - scaledRadius * 0.7);
       ctx.fill();
     }
 
@@ -575,10 +725,31 @@
 
     // Draw an individual snake segment with rounded edges.
     function drawSnakeSegment(segment, isHead, segmentIndex) {
-      const x = segment.x * cellSize + 1;
-      const y = segment.y * cellSize + 1;
-      const size = cellSize - 2;
+      let x = segment.x * cellSize + 1;
+      let y = segment.y * cellSize + 1;
+      let size = cellSize - 2;
       const radius = 10;
+
+      // Adjust size and position based on snake type
+      if (snakeType === 'blocky') {
+        x = segment.x * cellSize;
+        y = segment.y * cellSize;
+        size = cellSize;
+      } else if (snakeType === 'slim') {
+        x = segment.x * cellSize + cellSize * 0.2;
+        y = segment.y * cellSize + cellSize * 0.2;
+        size = cellSize * 0.6;
+      }
+
+      // Add wiggle for body segments to make it look alive
+      let wiggleX = 0;
+      let wiggleY = 0;
+      if (!isHead) {
+        wiggleX = Math.sin(animationTime + segmentIndex * 0.5) * 2;
+        wiggleY = Math.cos(animationTime + segmentIndex * 0.5) * 2;
+        x += wiggleX;
+        y += wiggleY;
+      }
 
       ctx.beginPath();
       ctx.moveTo(x + radius, y);
@@ -621,6 +792,15 @@
       ctx.fill();
 
       if (isHead) {
+        // Add glow when invincible
+        if (activePowerUp?.name === 'invincible') {
+          const glowSize = size * 1.5;
+          ctx.fillStyle = `rgba(255, 0, 255, 0.3)`;
+          ctx.beginPath();
+          ctx.arc(x + size / 2, y + size / 2, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
         // Add cleaner eyes to the snake head.
         const eyeRadius = size * 0.12;
         const eyeY = y + size * 0.32;
@@ -644,18 +824,43 @@
         ctx.arc(leftEyeX - eyeRadius * 0.15, eyeY - eyeRadius * 0.15, eyeRadius * 0.25, 0, Math.PI * 2);
         ctx.arc(rightEyeX - eyeRadius * 0.15, eyeY - eyeRadius * 0.15, eyeRadius * 0.25, 0, Math.PI * 2);
         ctx.fill();
+
+        // Add a shimmer highlight for extra shine
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.sin(animationTime * 0.5) * 0.2})`;
+        ctx.beginPath();
+        ctx.ellipse(x + size * 0.25, y + size * 0.25, size * 0.25, size * 0.15, Math.PI / 6, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
     // Draw the board, the food, and the snake.
     function draw() {
       // Paint the background.
-      ctx.fillStyle = '#1a1a2a';
+      const backgroundGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      backgroundGradient.addColorStop(0, '#14142f');
+      backgroundGradient.addColorStop(1, '#2e3b6f');
+      ctx.fillStyle = backgroundGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Fill each board square with a subtle moving color pattern.
+      const colorOffset = Math.floor(animationTime * 0.7);
+      for (let x = 0; x < cellsPerSide; x++) {
+        for (let y = 0; y < cellsPerSide; y++) {
+          const tileIndex = (x + y + colorOffset) % gridColors.length;
+          ctx.fillStyle = gridColors[tileIndex];
+          ctx.globalAlpha = 0.14 + ((x + y) % 2) * 0.05;
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+      }
+      ctx.globalAlpha = 1;
+
       // Draw the grid so the board looks like tiles.
-      ctx.strokeStyle = gridColor;
-      ctx.lineWidth = 2;
+      const lineGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      lineGradient.addColorStop(0, '#74d4ff');
+      lineGradient.addColorStop(0.5, '#8c8cff');
+      lineGradient.addColorStop(1, '#ff7dd6');
+      ctx.strokeStyle = lineGradient;
+      ctx.lineWidth = 1.5;
       for (let x = 0; x <= cellsPerSide; x++) {
         ctx.beginPath();
         ctx.moveTo(x * cellSize, 0);
@@ -702,7 +907,14 @@
       // Draw Power-Ups.
       for (const pu of powerUps) {
         ctx.fillStyle = pu.type.color;
-        ctx.fillRect(pu.x * cellSize + 2, pu.y * cellSize + 2, cellSize - 4, cellSize - 4);
+        ctx.globalAlpha = 0.7 + Math.sin(animationTime) * 0.3;
+        ctx.beginPath();
+        ctx.arc(pu.x * cellSize + cellSize / 2, pu.y * cellSize + cellSize / 2, cellSize * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = lightenColor(pu.type.color, 30);
+        ctx.stroke();
         // Add a lightning bolt symbol.
         ctx.fillStyle = '#ffffff';
         ctx.font = `${cellSize * 0.6}px Arial`;
@@ -712,6 +924,38 @@
 
       // Draw the food as a fruit.
       drawFruit(food);
+
+      // Draw particles.
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life * 0.8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      // Draw combo counter.
+      if (combo > 1) {
+        ctx.fillStyle = `rgba(255, 255, 0, ${Math.min(1, combo / 10)})`;
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const comboScale = 1 + Math.sin(animationTime) * 0.1;
+        ctx.save();
+        ctx.translate(canvas.width * 0.5, 30);
+        ctx.scale(comboScale, comboScale);
+        ctx.fillText(`Combo x${combo}`, 0, 0);
+        ctx.restore();
+      }
+
+      // Draw invincibility glow.
+      if (activePowerUp?.name === 'invincible') {
+        const glowIntensity = Math.sin(animationTime * 0.3) * 0.3 + 0.5;
+        ctx.strokeStyle = `rgba(255, 0, 255, ${glowIntensity * 0.5})`;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+      }
 
       // Draw each part of the snake.
       for (let i = 0; i < snake.length; i++) {
@@ -731,6 +975,8 @@
 
       const elapsed = currentTime - lastFrameTime;
       const updateRate = 1000 / speed;
+
+      animationTime += 0.1;
 
       // Only update when enough time has passed for the current speed.
       if (elapsed > updateRate) {
@@ -773,22 +1019,45 @@
       }
     });
 
-    // Load the saved high score and start the game.
-    loadHighScore();
-
     // Handle start menu.
     const startMenu = document.getElementById('startMenu');
     const startButton = document.getElementById('startButton');
     const gameModeSelect = document.getElementById('gameMode');
     const snakeSpeedSelect = document.getElementById('snakeSpeed');
     const snakeColorSelect = document.getElementById('snakeColor');
+    const snakeTypeSelect = document.getElementById('snakeType');
+    const leaderboardButton = document.getElementById('leaderboardButton');
+    const leaderboardDiv = document.getElementById('leaderboard');
+    const backButton = document.getElementById('backButton');
+
+    // Load saved score after the UI handlers are wired so a storage error
+    // cannot prevent the Start button from working.
+    try {
+      loadHighScore();
+    } catch (error) {
+      console.warn('Could not load saved high score.', error);
+      highScore = 0;
+      highScoreEl.textContent = '0';
+    }
 
     startButton.addEventListener('click', () => {
       gameMode = gameModeSelect.value;
       snakeSpeed = snakeSpeedSelect.value;
       snakeColor = snakeColorSelect.value;
+      snakeType = snakeTypeSelect.value;
       startMenu.style.display = 'none';
       resetGame();
+    });
+
+    leaderboardButton.addEventListener('click', () => {
+      startMenu.style.display = 'none';
+      displayLeaderboard();
+      leaderboardDiv.style.display = 'flex';
+    });
+
+    backButton.addEventListener('click', () => {
+      leaderboardDiv.style.display = 'none';
+      startMenu.style.display = 'flex';
     });
   </script>
 </body>
