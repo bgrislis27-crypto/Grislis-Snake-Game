@@ -305,6 +305,12 @@
       { name: 'invincible', color: '#ff00ff', effect: () => {}, duration: 200 },
       { name: 'scoreBoost', color: '#00ffff', effect: () => {}, duration: 150 }
     ];
+    const foodTypes = [
+      { name: 'apple', color: '#ff6b6b', accent: '#4cbf53', icon: 'A' },
+      { name: 'berry', color: '#8a5cff', accent: '#6ee7ff', icon: 'B' },
+      { name: 'melon', color: '#53d86a', accent: '#1f8f3a', icon: 'M' },
+      { name: 'citrus', color: '#ffb347', accent: '#ffd86a', icon: 'C' }
+    ];
 
     // Variables that hold the current state of the game.
     let snake;
@@ -470,7 +476,9 @@
       }
 
       // Pick one of the empty cells randomly.
-      food = freeCells[Math.floor(Math.random() * freeCells.length)];
+      const randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+      const randomFoodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+      food = { x: randomCell.x, y: randomCell.y, type: randomFoodType };
     }
 
     // Move the snake forward and handle food, walls, and collisions.
@@ -674,8 +682,8 @@
       statusEl.textContent = `Power-Up: ${type.name.charAt(0).toUpperCase() + type.name.slice(1)}!`;
     }
 
-    // Draw a stylized fruit instead of a simple square.
-    function drawFruit(cell) {
+    // Draw one of several food alternatives.
+    function drawFood(cell) {
       const centerX = cell.x * cellSize + cellSize / 2;
       const centerY = cell.y * cellSize + cellSize / 2;
       const radius = cellSize * 0.32;
@@ -684,15 +692,13 @@
       const scale = 1 + Math.sin(animationTime * 3) * 0.05;
       const scaledRadius = radius * scale;
 
-      // Random fruit colors for variety.
-      const fruitColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
-      const colorIndex = Math.floor(animationTime / 20) % fruitColors.length;
-      const fruitColor = fruitColors[colorIndex];
+      const foodType = cell.type || foodTypes[0];
+      const foodColor = foodType.color;
 
       // Fruit body with a gradient for depth.
       const fruitGradient = ctx.createRadialGradient(centerX - scaledRadius * 0.15, centerY - scaledRadius * 0.15, scaledRadius * 0.1, centerX, centerY, scaledRadius);
-      fruitGradient.addColorStop(0, lightenColor(fruitColor, 20));
-      fruitGradient.addColorStop(1, fruitColor);
+      fruitGradient.addColorStop(0, lightenColor(foodColor, 20));
+      fruitGradient.addColorStop(1, foodColor);
       ctx.fillStyle = fruitGradient;
       ctx.beginPath();
       ctx.arc(centerX, centerY, scaledRadius, 0, Math.PI * 2);
@@ -704,20 +710,19 @@
       ctx.ellipse(centerX - scaledRadius * 0.2, centerY - scaledRadius * 0.2, scaledRadius * 0.17, scaledRadius * 0.28, Math.PI / 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Stem.
-      ctx.strokeStyle = '#5e3b23';
-      ctx.lineWidth = 3;
+      // Accent cap/leaf so alternatives look distinct.
+      ctx.fillStyle = foodType.accent;
       ctx.beginPath();
-      ctx.moveTo(centerX, centerY - scaledRadius * 0.7);
-      ctx.lineTo(centerX, centerY - scaledRadius * 1.2);
-      ctx.stroke();
-
-      // Leaf.
-      ctx.fillStyle = '#4cbf53';
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY - scaledRadius * 1.15);
-      ctx.quadraticCurveTo(centerX + scaledRadius * 0.55, centerY - scaledRadius * 1.5, centerX + scaledRadius * 0.1, centerY - scaledRadius * 0.7);
+      ctx.moveTo(centerX, centerY - scaledRadius * 1.05);
+      ctx.quadraticCurveTo(centerX + scaledRadius * 0.55, centerY - scaledRadius * 1.4, centerX + scaledRadius * 0.1, centerY - scaledRadius * 0.6);
       ctx.fill();
+
+      // Letter icon marks which alternative spawned.
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = `bold ${Math.floor(cellSize * 0.34)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(foodType.icon, centerX, centerY + 1);
     }
 
     // Colors for snake body segments.
@@ -922,8 +927,8 @@
         ctx.fillText('⚡', pu.x * cellSize + cellSize / 2, pu.y * cellSize + cellSize * 0.7);
       }
 
-      // Draw the food as a fruit.
-      drawFruit(food);
+      // Draw the food (random alternative type each spawn).
+      drawFood(food);
 
       // Draw particles.
       particles.forEach(p => {
